@@ -1,9 +1,51 @@
+'use client';
+
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import axios from 'axios';
+import { toast } from 'react-hot-toast';
+
 export default function SignupPage() {
+
+  const router = useRouter();
+  const [user, setUser] = React.useState({
+    username: '',
+    email: '',
+    password: '',
+  });
+
+  const [buttonDisabled, setButtonDisabled] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+
+  useEffect(() => {
+    if (user.username.length > 0 && user.email.length > 0 && user.password.length > 0) {
+      setButtonDisabled(false);
+    } else {
+      setButtonDisabled(true);
+    }
+  }, [user]);
+
+    
+  const onSignup = async (e: any) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      const response = await axios.post('/api/users/signup', user);
+      toast.success(response.data.message || 'Signup successful!');
+      router.push('/login');
+    } catch (error: any) {
+      toast.error(error.response.data.message || 'Signup failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+    
   return (
     <div className='min-h-screen flex items-center justify-center bg-gray-50 px-4 py-8'>
       <div className='w-full max-w-sm rounded-lg border border-gray-200 bg-white p-7 shadow-sm'>
         <div className='mb-7'>
-          <h1 className='text-2xl font-semibold text-gray-900'>Create your account</h1>
+          <h1 className='text-2xl font-semibold text-gray-900'>{loading ? 'Processing' : 'Create your account'}</h1>
           <p className='mt-1.5 text-sm text-gray-500'>Enter your details below to get started.</p>
         </div>
 
@@ -16,6 +58,7 @@ export default function SignupPage() {
               type='text'
               id='username'
               name='username'
+              onChange={(e) => setUser({ ...user, username: e.target.value })}
               placeholder='Your username'
               autoComplete='username'
               required
@@ -31,6 +74,7 @@ export default function SignupPage() {
               type='email'
               id='email'
               name='email'
+              onChange={(e) => setUser({ ...user, email: e.target.value })}
               placeholder='name@example.com'
               autoComplete='email'
               required
@@ -46,6 +90,7 @@ export default function SignupPage() {
               type='password'
               id='password'
               name='password'
+              onChange={(e) => setUser({ ...user, password: e.target.value })}
               placeholder='Create a password'
               autoComplete='new-password'
               required
@@ -55,9 +100,10 @@ export default function SignupPage() {
 
           <button
             type='submit'
+            onClick={onSignup}
             className='mt-2 w-full cursor-pointer rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
           >
-            Create account
+            {buttonDisabled ? 'Fill the form' : 'Create account'}
           </button>
         </form>
 
